@@ -35,7 +35,7 @@ class Dashboard{
             try{
 
                 $conexao = new PDO(
-                    "myslq:host=$this->host;dbname=$this->dbname",
+                    "mysql:host=$this->host;dbname=$this->dbname",
                     "$this->user",
                     "$this->pass"
                 );
@@ -68,16 +68,39 @@ class Bd {
     }
 
     public function getNumeroVendas(){
+
+        $query = '
+
+            SELECT COUNT(*) AS numero_vendas
+            FROM tb_vendas
+            WHERE data_venda BETWEEN :data_inicio AND :data_fim
         
+        ';
+
+        $stmt = $this->conexao->prepare($query);
+        
+        $stmt->bindValue(':data_inicio', $this->dashboard->__get('data_inicio'));
+        $stmt->bindValue(':data_fim', $this->dashboard->__get('data_fim'));
+        $stmt->execute();
+
+        return $stmt->fetch(PDO::FETCH_OBJ)->numero_vendas;
+
     }
 
 }
 
+//lógica do script
 $dashboard = new Dashboard();
 $conexao = new Conexao();
 
-$bd = new Bd($conexao, $dashboard)
+$dashboard->__set('data_inicio', '');
+$dashboard->__set('data_fim', '');
 
+
+$bd = new Bd($conexao, $dashboard);
+
+$dashboard->__set('numeroVendas', $bd->getNumeroVendas());
+print_r($dashboard);
 
 
 
